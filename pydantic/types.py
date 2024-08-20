@@ -4,11 +4,12 @@ from __future__ import annotations as _annotations
 
 import base64
 import dataclasses as _dataclasses
+import os
 import re
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from pathlib import Path
+from pathlib import Path, PosixPath
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -1262,6 +1263,10 @@ class PathType:
 
     @staticmethod
     def validate_file(path: Path, _: core_schema.ValidationInfo) -> Path:
+        if isinstance(path, PosixPath) and os.statvfs(path.parent).f_namemax < len(path.name):
+            # if `path` is too long, it is impossible that the path points to any entity,
+            # so surely it does not point to a file
+            raise PydanticCustomError('path_not_file', 'Path does not point to a file')
         if path.is_file():
             return path
         else:
@@ -1269,6 +1274,10 @@ class PathType:
 
     @staticmethod
     def validate_directory(path: Path, _: core_schema.ValidationInfo) -> Path:
+        if isinstance(path, PosixPath) and os.statvfs(path.parent).f_namemax < len(path.name):
+            # if `path` is too long, it is impossible that the path points to any entity,
+            # so surely it does not point to a directory
+            raise PydanticCustomError('path_not_directory', 'Path does not point to a directory')
         if path.is_dir():
             return path
         else:
@@ -1276,7 +1285,9 @@ class PathType:
 
     @staticmethod
     def validate_new(path: Path, _: core_schema.ValidationInfo) -> Path:
-        if path.exists():
+        if isinstance(path, PosixPath) and os.statvfs(path.parent).f_namemax < len(path.name):
+            raise PydanticCustomError('path_too_long', 'Path name is too long')
+        elif path.exists():
             raise PydanticCustomError('path_exists', 'Path already exists')
         elif not path.parent.exists():
             raise PydanticCustomError('parent_does_not_exist', 'Parent directory does not exist')

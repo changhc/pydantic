@@ -3637,7 +3637,17 @@ def test_file_path_validation_success(value, result):
     assert Model(foo=value).foo == result
 
 
-@pytest.mark.parametrize('value', ['nonexistentfile', Path('nonexistentfile'), 'tests', Path('tests')])
+@pytest.mark.parametrize(
+    'value',
+    [
+        'nonexistentfile',
+        Path('nonexistentfile'),
+        'tests',
+        Path('tests'),
+        'very_' * 80 + 'long_path',
+        Path('very_' * 80 + 'long_path'),
+    ],
+)
 def test_file_path_validation_fails(value):
     class Model(BaseModel):
         foo: FilePath
@@ -3663,7 +3673,15 @@ def test_directory_path_validation_success(value, result):
 
 
 @pytest.mark.parametrize(
-    'value', ['nonexistentdirectory', Path('nonexistentdirectory'), 'tests/test_t.py', Path('tests/test_ypestypes.py')]
+    'value',
+    [
+        'nonexistentdirectory',
+        Path('nonexistentdirectory'),
+        'tests/test_t.py',
+        Path('tests/test_ypestypes.py'),
+        'very_' * 80 + 'long_path',
+        Path('very_' * 80 + 'long_path'),
+    ],
 )
 def test_directory_path_validation_fails(value):
     class Model(BaseModel):
@@ -3710,6 +3728,23 @@ def test_new_path_validation_parent_does_not_exist(value):
             'type': 'parent_does_not_exist',
             'loc': ('foo',),
             'msg': 'Parent directory does not exist',
+            'input': value,
+        }
+    ]
+
+
+@pytest.mark.parametrize('value', ('very_' * 80 + 'long_path', Path('very_' * 80 + 'long_path')))
+def test_new_path_validation_path_too_long(value):
+    class Model(BaseModel):
+        foo: NewPath
+
+    with pytest.raises(ValidationError) as exc_info:
+        Model(foo=value)
+    assert exc_info.value.errors(include_url=False) == [
+        {
+            'type': 'path_too_long',
+            'loc': ('foo',),
+            'msg': 'Path name is too long',
             'input': value,
         }
     ]
