@@ -1077,6 +1077,7 @@ class GenerateSchema:
             validation_alias=common_field['validation_alias'],
             serialization_alias=common_field['serialization_alias'],
             frozen=common_field['frozen'],
+            deprecation_msg=common_field['deprecation_msg'],
             metadata=common_field['metadata'],
         )
 
@@ -1312,6 +1313,7 @@ class GenerateSchema:
             validation_alias=validation_alias,
             serialization_alias=field_info.serialization_alias,
             frozen=field_info.frozen,
+            deprecation_msg=field_info.deprecation_message,
             metadata=core_metadata,
         )
 
@@ -2401,6 +2403,7 @@ class _CommonField(TypedDict):
     serialization_alias: str | None
     serialization_exclude: bool | None
     frozen: bool | None
+    deprecation_msg: str | None
     metadata: dict[str, Any]
 
 
@@ -2411,6 +2414,7 @@ def _common_field(
     serialization_alias: str | None = None,
     serialization_exclude: bool | None = None,
     frozen: bool | None = None,
+    deprecation_msg: str | None = None,
     metadata: Any = None,
 ) -> _CommonField:
     return {
@@ -2419,6 +2423,7 @@ def _common_field(
         'serialization_alias': serialization_alias,
         'serialization_exclude': serialization_exclude,
         'frozen': frozen,
+        'deprecation_msg': deprecation_msg,
         'metadata': metadata,
     }
 
